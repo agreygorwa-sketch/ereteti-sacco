@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> Apply for membership - Ereteti Dairy Sacco</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Apply for Membership</h1>
+        <p>Milk collected twice a day, on three routes out of Ngong.</p>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="routes.html">Our Routes</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="register.html">Join</a></li>
+            <li><a href="deliveries.html">Deliveries</a></li>
+            </ul>
+    </nav>
+    <main>
+        <p>Any dairy farmer within reach of one of our three routes may apply to join Ereteti. You will need your national ID number and a phone we can reach you on. Once your membership number is issued you may deliver from that day, and you are paid once a month for the litres we accept.</p>
+        <form action="#" method="post"><!--creates a form for users to fill out -->
+        <fieldset><!--Groups applicants details together-->
+            <legend>Your Details</legend><!--Gives the fieldset a title-->
+            <label for="first-name">First name</label><!--Creates a label for the first name input field-->
+            <input type="text" id="first-name" name="first_name" required><!--Creates a text box for entering the first name-->
+            <label for="last-name">Last name</label>
+            <input type="text" id="last-name" name="last_name" required>
+            <label for="national-id">National ID number</label>
+            <input type="text" id="national-id" name="nation_id" required>
+            <label for="phone">Phone number</label>
+            <input type="tel" id="phone" name="phone" pattern="07[0-9]{8}" title="Ten digits, starting 07" placeholder="07XXXXXXXX" required><!--Creates a phone input with required kenyan number format-->
+        </fieldset><!--Ends fieldset-->
+        <fieldset>
+            <legend>Your route</legend>
+            <label for="route">Route</label>
+            <select id="route" name="route" required><!--Creates a dropdown list for selecting a route-->
+                <option value="">Choose a route</option><!--Provides instructions for the list-->
+                <option value="1">Kiserian route</option><!--Provides the option for Kiserian route-->
+                <option value="2">Ngong route </option>
+                <option value="3">Rongai route</option>
+            </select>
+            <label for="date-joined">Date of joining</label>
+            <input type="date" id="date-joined" name="date_joined" max="2026-09-24" required><!--Creates a date field and prevents dates after 24th September 2026-->
+        </fieldset>
+        <label for="rules">
+        <input type="checkbox" id="rules" name="rules" required><!--Creates a checkbox for agreeing to the rules-->
+        I accept the sacco's rules </label>
+        <button type="submit">Apply to join</button><!--Creates a submit button for the form-->
+        </form>
+    </main>
+    <footer>
+        <p>Ereteti Dairy Sacco, PO Box 4021, Ngong</p>
+        <p>Built by agrey gorwa, 226504, DBT 1305</p>
+    </footer>
+</body>
+</html>

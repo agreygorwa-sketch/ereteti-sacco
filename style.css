@@ -1,0 +1,110 @@
+body {
+    background: #F8F5E9;
+    color: #1E2A24;
+    font-family: Georgia, 'Times New Roman', serif;
+    margin: 0;
+    line-height: 1.5;
+}
+
+header {
+    background: #2D6A4F;
+    color: #FFFFFF;
+    padding: 1rem 2rem;
+}
+
+header p {
+    margin: 0.25rem 0 0;
+}
+
+nav {
+    position: sticky;
+    top: 0;
+    background: #1B4332;
+    padding: 0.5rem 2rem;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+nav a {
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    display: block;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    border-top: 1px solid #CCCCCC;
+    color: #444444;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+form label {
+    display: block;
+    margin-top: 0.75rem;
+}
+
+form input,
+form select {
+    display: block;
+    margin-top: 0.25rem;
+    padding: 0.4rem;
+    max-width: 100%;
+}
+
+form button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th,
+td {
+    border: 1px solid #999999;
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.message {
+    color: #B00020;
+    min-height: 1.2em;
+}
+
+@media (max-width: 700px) {
+    main {
+        padding: 1rem;
+    }
+
+    nav ul {
+        gap: 0.5rem;
+    }
+}
