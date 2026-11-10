@@ -1,39 +1,125 @@
-// Week 8: delivery-form validation for the deliveries page.
-// Static site: nothing is saved anywhere; this only checks the form
-// before it is submitted and reports back in the message slots.
-document.addEventListener('DOMContentLoaded', function () {
-    var form = document.getElementById('delivery-form');
-    if (!form) return;
+// Lab 3 — js/main.js
+// One file serves all six pages. Each block runs only where its
+// elements exist, so every listener and every block is guarded.
+// Linked in the head of every page as:
+//   <script src="js/main.js" defer></script>
+// defer: download now, run only after the whole page has been read,
+// so every element exists when the script looks for it.
 
-    var member = document.getElementById('member');
-    var litres = document.getElementById('litres');
-    var memberMessage = document.getElementById('member-message');
-    var litresMessage = document.getElementById('litres-message');
-    var formMessage = document.getElementById('form-message');
+// ---- 1. deliveries.html: litres, checked as typed
 
-    function checkMember() {
-        var ok = /^ER-[0-9]{4}$/.test(member.value.trim());
-        memberMessage.textContent = ok ? '' : 'Member number looks like ER-0000.';
-        return ok;
+const litres = document.querySelector('#litres');
+const litresMessage = document.querySelector('#litres-message');
+
+function checkLitres() {
+  const amount = Number(litres.value);
+
+  if (litres.value === '') {
+    litresMessage.textContent = '';
+    litres.classList.remove('invalid');
+  } else if (amount <= 0) {
+    litresMessage.textContent = 'Litres must be more than 0.';
+    litres.classList.add('invalid');
+  } else if (amount > 60) {
+    litresMessage.textContent = 'Over 60 litres in one session. Check the reading.';
+    litres.classList.add('invalid');
+  } else {
+    litresMessage.textContent = '';
+    litres.classList.remove('invalid');
+  }
+}
+
+if (litres) {
+  litres.addEventListener('input', checkLitres);
+}
+
+// ---- 2. deliveries.html: member number, checked on blur
+
+const member = document.querySelector('#member');
+const memberMessage = document.querySelector('#member-message');
+const memberShape = /^ER-[0-9]{4}$/; // a pattern: already a RegExp
+
+function checkMember() {
+  const typed = member.value.trim().toUpperCase();
+  member.value = typed;
+
+  if (memberShape.test(typed)) {
+    memberMessage.textContent = '';
+    member.classList.remove('invalid');
+  } else {
+    memberMessage.textContent = 'A member number looks like ER-0001.';
+    member.classList.add('invalid');
+  }
+}
+
+if (member) {
+  member.addEventListener('blur', checkMember);
+}
+
+// ---- 3. deliveries.html: the form, stopped before it is sent
+
+const deliveryForm = document.querySelector('#delivery-form');
+const formMessage = document.querySelector('#form-message');
+
+function recordDelivery(event) {
+  event.preventDefault();
+  checkMember();
+  checkLitres();
+
+  if (member.classList.contains('invalid')) {
+    member.focus();
+  } else if (litres.classList.contains('invalid')) {
+    litres.focus();
+  } else {
+    formMessage.textContent = 'Checked: ' + member.value + ', ' + litres.value + ' litres. Nothing is sent yet: ' + 'that needs a server.';
+  }
+}
+
+if (deliveryForm) {
+  deliveryForm.addEventListener('submit', recordDelivery);
+}
+
+// ---- 4. routes.html: the routes, filtered as you type
+
+const search = document.querySelector('#route-search');
+const routeCount = document.querySelector('#route-count');
+const routeSections = document.querySelectorAll('main section');
+
+function filterRoutes() {
+  const wanted = search.value.trim().toLowerCase();
+  let shown = 0;
+
+  for (const section of routeSections) {
+    const words = section.textContent.toLowerCase();
+    if (words.includes(wanted)) {
+      section.hidden = false;
+      shown = shown + 1;
+    } else {
+      section.hidden = true;
     }
+  }
 
-    function checkLitres() {
-        var value = parseFloat(litres.value);
-        var ok = !isNaN(value) && value > 0;
-        litresMessage.textContent = ok ? '' : 'Enter litres above zero.';
-        return ok;
+  routeCount.textContent = shown + ' of ' + routeSections.length + ' routes';
+}
+
+if (search) {
+  search.addEventListener('input', filterRoutes);
+}
+
+// ---- 5. deliveries.html: the accepted total
+
+const totalCell = document.querySelector('#accepted-total');
+
+if (totalCell) {
+  const rows = document.querySelectorAll('tbody tr');
+  let total = 0;
+
+  for (const row of rows) {
+    const cells = row.querySelectorAll('td');
+    if (cells[4].textContent === 'Yes') {
+      total = total + Number(cells[3].textContent);
     }
+  }
 
-    member.addEventListener('input', checkMember);
-    litres.addEventListener('input', checkLitres);
-
-    form.addEventListener('submit', function (event) {
-        event.preventDefault();
-        var ok = checkMember() && checkLitres();
-        if (!ok) {
-            formMessage.textContent = 'Fix the fields above first.';
-            return;
-        }
-        formMessage.textContent = 'Delivery recorded (demo: nothing is saved).';
-    });
-});
+  totalCell.textContent = total.toFixed(2);
+}

@@ -95,8 +95,13 @@ td {
 }
 
 .message {
-    color: #B00020;
-    min-height: 1.2em;
+    color: #B3261E;
+    min-height: 1.5em;
+    margin: 0.25rem 0 0.75rem;
+}
+
+input.invalid {
+    border: 2px solid #B3261E;
 }
 
 @media (max-width: 700px) {
