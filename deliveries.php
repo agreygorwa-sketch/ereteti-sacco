@@ -2,107 +2,104 @@
 require_once 'includes/db.php'; // 1 · CONNECT
 $page_title = 'Deliveries';
 include 'includes/header.php';
-// 2 · QUERY — every delivery on one day, with the farmer's number and name
-$sql = "SELECT f.member_no, f.first_name, f.last_name, d.session, d.litres, d.accepted FROM milk_delivery d JOIN farmer f ON f.farmer_id = d.farmer_id WHERE d.delivery_date = '2026-10-12' ORDER BY f.member_no, d.session";
-$result = mysqli_query($conn, $sql);
+// The day to show now comes from the address: deliveries.php?date=2026-10-31
+// It was typed by the visitor, so it goes in as a VALUE, never as SQL.
+$date = $_GET['date'] ?? '2026-10-12';
+// 2 · QUERY — prepared: the SQL first, with a ? where the date goes
+$stmt = mysqli_prepare($conn,
+  "SELECT d.delivery_id, f.member_no, f.first_name, f.last_name,
+  d.session, d.litres, d.accepted
+  FROM milk_delivery d
+  JOIN farmer f ON f.farmer_id = d.farmer_id
+  WHERE d.delivery_date = ?
+  ORDER BY f.member_no, d.session");
+mysqli_stmt_bind_param($stmt, 's', $date); // s: the date is sent as a string
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 $count = mysqli_num_rows($result);
 ?>
-
-  <main>
-    <p><?php echo $count; ?> deliveries on this day.</p>
-
-    <p>Milk received on Monday 12 October 2026, from all three routes — Kiserian, Ngong and Rongai. Both sessions are listed: the morning collection and the evening collection.</p>
-
-    <!-- Week 8: the clerk's form -->
-    <h2>Record a delivery</h2>
-
-    <form id="delivery-form" action="#" method="post">
-      <label for="member">Member number</label>
-      <input type="text" id="member" name="member_no"
-             placeholder="ER-0000" required>
-      <p id="member-message" class="message"
-         aria-live="polite"></p>
-
-      <label for="session">Session</label>
-      <select id="session" name="session" required>
-        <option value="">Choose a session</option>
-        <option value="MORNING">Morning</option>
-        <option value="EVENING">Evening</option>
-      </select>
-
-      <label for="litres">Litres</label>
-      <input type="number" id="litres" name="litres"
-             step="0.01" required>
-      <p id="litres-message" class="message"
-         aria-live="polite"></p>
-
-      <button type="submit">Record delivery</button>
-      <p id="form-message" aria-live="polite"></p>
-    </form>
-
-    <div class="table-scroll">
-      <table>
-        <caption>Milk received, Monday 12 October 2026</caption>
-
-        <thead>
-          <tr>
-            <th scope="col">Member</th>
-            <th scope="col">Farmer</th>
-            <th scope="col">Session</th>
-            <th scope="col">Litres</th>
-            <th scope="col">Accepted</th>
-          </tr>
-        </thead>
-
-        <tbody>
+<main>
 <?php
-if ($count === 0) { // NEW
-    echo '<tr><td colspan="5">No deliveries recorded on this day.</td></tr>'; // NEW
-} else { // NEW
-    // 3 · FETCH each row, and 4 · SHOW it as a table row
-    while ($row = mysqli_fetch_assoc($result)) {
+// A one-line message after a save, an update or a delete
+if (isset($_GET['saved'])) { echo '<p class="success">The delivery was recorded.</p>'; }
+if (isset($_GET['updated'])) { echo '<p class="success">The delivery was updated.</p>'; }
+if (isset($_GET['deleted'])) { echo '<p class="success">The delivery was deleted.</p>'; }
+?>
+<form action="deliveries.php" method="get">
+  <label for="date">Show the deliveries on</label>
+  <input type="date" id="date" name="date" value="<?php echo htmlspecialchars($date); ?>">
+  <button type="submit">Show</button>
+</form>
+<p><?php echo $count; ?> deliveries on this day.</p>
+<h2>Record a delivery</h2>
+<form id="delivery-form" action="process-delivery.php" method="post">
+  <label for="member">Member number</label>
+  <input type="text" id="member" name="member_no" placeholder="ER-0000" required>
+  <p id="member-message" class="message" aria-live="polite"></p>
+  <label for="delivery-date">Date</label>
+  <input type="date" id="delivery-date" name="delivery_date" value="<?php echo htmlspecialchars($date); ?>" required>
+  <label for="session">Session</label>
+  <select id="session" name="session" required>
+    <option value="">Choose a session</option>
+    <option value="MORNING">Morning</option>
+    <option value="EVENING">Evening</option>
+  </select>
+  <label for="litres">Litres</label>
+  <input type="number" id="litres" name="litres" step="0.01" required>
+  <p id="litres-message" class="message" aria-live="polite"></p>
+  <button type="submit">Record delivery</button>
+  <p id="form-message" aria-live="polite"></p>
+</form>
+<div class="table-scroll">
+<table>
+  <caption>Milk received on <?php echo htmlspecialchars($date); ?></caption>
+  <thead>
+    <tr>
+      <th scope="col">Member</th>
+      <th scope="col">Farmer</th>
+      <th scope="col">Session</th>
+      <th scope="col">Litres</th>
+      <th scope="col">Accepted</th>
+      <th scope="col">Change</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php
+    if ($count === 0) {
+      echo '<tr><td colspan="6">No deliveries recorded on this day.</td></tr>';
+    } else {
+      // 3 · FETCH each row, and 4 · SHOW it as a table row
+      while ($row = mysqli_fetch_assoc($result)) {
         if ($row['accepted'] == 1) {
-            $accepted = 'Yes';
+          $accepted = 'Yes';
         } else {
-            $accepted = 'No';
+          $accepted = 'No';
         }
+        $id = $row['delivery_id'];
         echo '<tr>';
         echo '<td>' . $row['member_no'] . '</td>';
         echo '<td>' . $row['first_name'] . ' ' . $row['last_name'] . '</td>';
         echo '<td>' . ucfirst(strtolower($row['session'])) . '</td>';
         echo '<td>' . $row['litres'] . '</td>';
         echo '<td>' . $accepted . '</td>';
+        // UPDATE starts from a link; DELETE is a small form sent by post
+        echo '<td><a href="edit-delivery.php?id=' . $id . '">Edit</a>';
+        echo ' <form action="delete-delivery.php" method="post" class="inline">';
+        echo '<input type="hidden" name="delivery_id" value="' . $id . '">';
+        echo '<input type="hidden" name="date" value="' . htmlspecialchars($date) . '">';
+        echo '<button type="submit">Delete</button></form></td>';
         echo '</tr>';
+      }
     }
-} // NEW
-?>
-        </tbody>
-
-        <tfoot>
-          <tr>
-            <th colspan="4" scope="row">Accepted today</th>
-            <td id="accepted-total"></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-
-    <p>Joseph Kamau's morning load failed the alcohol test and was
-    rejected, so it is not counted in the day's total. It is still
-    listed: a rejected load is recorded, never deleted, because the
-    farmer has a right to see what happened to their milk.</p>
-  </main>
-
-  <aside>
-    <h2>Notices</h2>
-    <ul>
-      <li>Milk is paid at <strong>KSh 52.00 a litre</strong> from
-          1 October 2026.</li>
-      <li>Annual General Meeting: Saturday 17 October, 10 a.m., at the
-          Kiserian collection centre.</li>
-      <li>New members: <a href="register.php">apply to join</a>. You need
-          a national ID and a bank account.</li>
-    </ul>
-  </aside>
-
-  <?php include('includes/footer.php'); ?>
+    ?>
+  </tbody>
+  <tfoot>
+    <tr>
+      <th colspan="5" scope="row">Accepted today</th>
+      <td id="accepted-total"></td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+</main>
+<?php include 'includes/footer.php'; ?>
